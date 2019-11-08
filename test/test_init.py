@@ -53,3 +53,13 @@ def test_struct_tensors_should_return_list_of_tensors_in_struct():
     assert len(ts) == 2
     assert any([torch.all(torch.ones(5).eq(t_)) for t_ in ts])
     assert any([torch.all(torch.ones(5).eq(t_)) * 2 for t_ in ts])
+
+
+def test_struct_common_size_should_return_size_of_first_tensor_in_dict():
+    t = TensorStruct({
+        'a': torch.ones((10, 2)),
+        'b': {
+            'c': torch.ones((5, 2))
+        }
+    })
+    assert t.common_size(0) in [10, 5]

@@ -34,7 +34,16 @@ class TensorStruct:
         return [self._data]
 
     def values(self) -> List[torch.Tensor]:
+        """
+        Alias for `tensors()`.
+        """
         return self.tensors()
+
+    def common_size(self, dim: int) -> int:
+        """
+        Assumes that each tensor in this structure has the same size of `dim` dimension and returns it.
+        """
+        return self.tensors()[0].size(dim)
 
     # === Representation ===
     def __repr__(self):
