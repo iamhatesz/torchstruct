@@ -13,6 +13,7 @@ setup(
     long_description_content_type='text/markdown',
     url='https://github.com/iamhatesz/torchstruct',
     packages=find_packages(),
+    py_modules=['torchstruct'],
     classifiers=[
         'Development Status :: 4 - Beta',
         'License :: OSI Approved :: MIT License',
