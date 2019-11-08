@@ -38,3 +38,18 @@ def test_struct_should_allow_to_create_nested_zeros_tensors():
     assert td['d']['e'].shape == (1, 2)
     assert td['d']['f'].shape == (1, 3, 1, 4)
     assert td['d']['g']['h']['i'].shape == (1, 8, 2)
+
+
+def test_struct_tensors_should_return_list_of_tensors_in_struct():
+    t = TensorStruct({
+        'a': torch.ones(5),
+        'b': {
+            'c': {
+                'd': torch.ones(5) * 2
+            }
+        }
+    })
+    ts = t.tensors()
+    assert len(ts) == 2
+    assert any([torch.all(torch.ones(5).eq(t_)) for t_ in ts])
+    assert any([torch.all(torch.ones(5).eq(t_)) * 2 for t_ in ts])

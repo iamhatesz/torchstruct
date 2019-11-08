@@ -29,7 +29,12 @@ class TensorStruct:
         """
         Return list of all tensors in this structure.
         """
-        pass
+        if isinstance(self._data, dict):
+            return tensor_values(self._data)
+        return [self._data]
+
+    def values(self) -> List[torch.Tensor]:
+        return self.tensors()
 
     # === Representation ===
     def __repr__(self):
@@ -193,3 +198,13 @@ def keys(d: Dict[str, Any], prefix: str = '') -> Set[str]:
             k.extend(keys(value, prefix=f'{prefix}{key}.'))
         k.append(f'{prefix}{key}')
     return set(k)
+
+
+def tensor_values(d: Dict[str, Any]) -> List[Any]:
+    v = []
+    for key, value in d.items():
+        if isinstance(value, dict):
+            v.extend(tensor_values(d[key]))
+        elif isinstance(value, torch.Tensor):
+            v.append(value)
+    return v
