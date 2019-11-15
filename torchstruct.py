@@ -146,9 +146,10 @@ class TensorStruct:
                 raise ValueError('Unsupported assignment operation')
 
     # === Processing data ===
-    def apply(self, fn: Callable[[torch.Tensor], torch.Tensor]) -> Union[torch.Tensor, TensorStruct]:
+    def apply(self, fn: Callable[[torch.Tensor], torch.Tensor],
+              keep_struct: bool = False) -> Union[torch.Tensor, TensorStruct]:
         if isinstance(self._data, torch.Tensor):
-            return fn(self._data)
+            return fn(self._data) if not keep_struct else TensorStruct(fn(self._data))
         d = rdefaultdict()
         _map_dict(d, self._data, fn)
         return TensorStruct(d)
@@ -159,11 +160,18 @@ class TensorStruct:
             return super().__getattribute__(item)
         prop = getattr(torch.Tensor, item)
         if callable(prop):
-            return lambda *args, **kwargs: self.apply(lambda t: prop(t, *args, **kwargs))
+            return lambda *args, **kwargs: self._apply_pytorch_method(prop, *args, **kwargs)
         elif isinstance(self._data, torch.Tensor):
             return getattr(self._data, item)
         else:
             raise ValueError('Property can be retrieved only from single tensor structures')
+
+    def _apply_pytorch_method(self, method, *args, **kwargs):
+        keep_struct = kwargs.get('keep_struct', False)
+        # Remove `keep_struct` from `kwargs` to not be passed to PyTorch method
+        if 'keep_struct' in kwargs:
+            del kwargs['keep_struct']
+        return self.apply(lambda t: method(t, *args, **kwargs), keep_struct=keep_struct)
 
 
 def _assure_iterable(x):
