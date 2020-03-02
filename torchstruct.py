@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import operator
 from collections import defaultdict
-from typing import Union, Dict, Tuple, Any, Callable, List, Set
+from functools import reduce
+from typing import Union, Dict, Tuple, Any, Callable, List, Set, Optional
 
 import torch
 
@@ -208,12 +210,14 @@ def rdefaultdict():
     return defaultdict(rdefaultdict)
 
 
-def keys(d: Dict[str, Any], prefix: str = '') -> Set[str]:
+def keys(d: Dict[str, Any], prefix: Optional[Tuple[str, ...]] = None) -> Set[Tuple[str, ...]]:
+    if prefix is None:
+        prefix = tuple()
     k = []
     for key, value in d.items():
         if isinstance(value, dict):
-            k.extend(keys(value, prefix=f'{prefix}{key}.'))
-        k.append(f'{prefix}{key}')
+            k.extend(keys(value, prefix=prefix + (key,)))
+        k.append(prefix + (key,))
     return set(k)
 
 
@@ -225,3 +229,41 @@ def tensor_values(d: Dict[str, Any]) -> List[Any]:
         elif isinstance(value, torch.Tensor):
             v.append(value)
     return v
+
+
+def _dict_nested_get(d, keys):
+    return reduce(operator.getitem, keys, d)
+
+
+def _dict_nested_set(d, keys, value):
+    _dict_nested_get(d, keys[:-1])[keys[-1]] = value
+
+
+def cat(structs: List[TensorStruct], dim: int = 0) -> TensorStruct:
+    """
+    Concatenate list of `structs` along existing `dim`.
+    """
+    if len(structs) == 0:
+        raise ValueError('At least one `TensorStruct` is required')
+    s = structs[0]
+    ks = keys(s.data())
+    d = rdefaultdict()
+    for key in ks:
+        ts = tuple(_dict_nested_get(s.data(), key) for s in structs)
+        _dict_nested_set(d, key, torch.cat(ts, dim=dim))
+    return TensorStruct(d)
+
+
+def stack(structs: List[TensorStruct], dim: int = 0) -> TensorStruct:
+    """
+    Stack list of `structs` along new `dim`.
+    """
+    if len(structs) == 0:
+        raise ValueError('At least one `TensorStruct` is required')
+    s = structs[0]
+    ks = keys(s.data())
+    d = rdefaultdict()
+    for key in ks:
+        ts = tuple(_dict_nested_get(s.data(), key) for s in structs)
+        _dict_nested_set(d, key, torch.stack(ts, dim=dim))
+    return TensorStruct(d)
