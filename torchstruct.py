@@ -20,7 +20,6 @@ class TensorStruct:
         else:
             assert isinstance(data, torch.Tensor)
         self._data = data
-        self.__dict__ = {'_data': self._data}
 
     def data(self) -> TData:
         """
