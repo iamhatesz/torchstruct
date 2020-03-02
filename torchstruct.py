@@ -105,11 +105,11 @@ class TensorStruct:
             if isinstance(self._data[item], dict):
                 return TensorStruct(self._data[item])
             return self._data[item]
-        elif isinstance(item, int) or isinstance(item, slice) or isinstance(item, torch.Tensor):
+        elif any(map(lambda type_: isinstance(item, type_), [int, slice, list, tuple, torch.Tensor])):
             return TensorStruct(self._index(item))
         else:
-            raise ValueError(f'Only indexing with `str`, `int`, `slice` or `torch.Tensor` is supported '
-                             f'(`{type(item)}` given)')
+            raise ValueError(f'Only indexing with `str`, `int`, `slice`, `list`, `tuple` or `torch.Tensor` is supported'
+                             f' (`{type(item)}` given)')
 
     def _index(self, item: Union[int, slice, torch.Tensor]) -> TData:
         if isinstance(self._data, torch.Tensor):

@@ -192,3 +192,13 @@ def test_struct_should_update_values_from_struct_at_given_indices():
     t['a'][2:7] = new_data
     assert t['a']['b'][2, 0] == 0
     assert t['a']['c'][2, 0] == 0
+
+
+def test_struct_should_allow_indexing_with_list_of_indices():
+    t = TensorStruct.zeros({
+        'a': (10, 2),
+        'b': (10, 3)
+    })
+    indices = [1, 3, 7]
+    t_ = t[indices]
+    assert t_.common_size(0) == 3
