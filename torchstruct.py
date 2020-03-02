@@ -20,6 +20,7 @@ class TensorStruct:
         else:
             assert isinstance(data, torch.Tensor)
         self._data = data
+        self.__dict__ = {'_data': self._data}
 
     def data(self) -> TData:
         """
@@ -174,6 +175,13 @@ class TensorStruct:
         if 'keep_struct' in kwargs:
             del kwargs['keep_struct']
         return self.apply(lambda t: method(t, *args, **kwargs), keep_struct=keep_struct)
+
+    # === Pickling support ===
+    def __getstate__(self):
+        return {'_data': self._data}
+
+    def __setstate__(self, state):
+        self._data = state['_data']
 
 
 def _assure_iterable(x):

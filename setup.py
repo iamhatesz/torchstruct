@@ -5,7 +5,7 @@ with open('README.md', 'r') as f:
 
 setup(
     name='torchstruct',
-    version='0.1.4',
+    version='0.1.5',
     author='Tomasz Wrona',
     author_email='tomasz@wrona.me',
     description='',
